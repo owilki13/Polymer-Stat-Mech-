@@ -1,0 +1,240 @@
+# This input file executes the 21-step relaxation procedure.
+
+# Input variables
+variable        T equal 1000 #Define T (K)
+variable        P equal 0.101325 #Define P (MPa)
+
+# Config variables
+variable        dt equal 1.0
+variable        ctof equal 14
+variable        thermo_freq equal 1000
+variable        e_prec equal 0.0001
+variable        seed equal 123456789.0
+variable        Tdamp equal 100
+variable        Pdamp equal 1000
+
+# Original simulation length variables
+variable        d1 equal 50000/${dt}
+variable        d2 equal 100000/${dt}
+variable        d3 equal 5000/${dt}
+variable        d4 equal 10000/${dt}
+variable        d5 equal 800000/${dt}
+
+# Shorter simulation length variables as an example
+#variable        d1 equal 5000
+#variable        d2 equal 10000
+#variable        d3 equal 500
+#variable        d4 equal 1000
+#variable        d5 equal 8000
+
+# Process variables
+variable        Tmax equal 2000
+variable        Pmax equal 50000/1.01325
+variable        Pmax002 equal ${Pmax}*0.02
+variable        Pmax06 equal ${Pmax}*0.6
+variable        Pmax05 equal ${Pmax}*0.5
+variable        Pmax01 equal ${Pmax}*0.1
+variable        Pmax001 equal ${Pmax}*0.01
+variable        Patm equal ${P}/0.101325
+
+# System
+units           real
+boundary        p p p
+
+# Styles
+atom_style      full
+bond_style      class2
+angle_style     class2
+dihedral_style  class2
+improper_style  class2
+special_bonds   amber
+pair_style      lj/class2/coul/long ${ctof}
+kspace_style    ewald ${e_prec}
+pair_modify     mix arithmetic tail yes
+
+# Initial configuration
+read_data       /home/owilki13/statmech/linear/LUNAR/pack.data
+
+# Integration
+neighbor        2.0 bin
+neigh_modify    delay 4 every 1 check yes
+timestep        ${dt}
+
+# Output
+thermo_style    custom step temp press vol density emol etotal
+
+# STRUCTURE MINIMIZATION
+minimize         1.0e-4 1.0e-6 100 1000
+print           "Minimization complete"
+
+# BEGIN 21-STEP RELAXATION
+#STEP 1
+thermo ${d1}
+fix 1 all nvt temp ${Tmax} ${Tmax} ${Tdamp}
+velocity all create ${Tmax} ${seed}
+run ${d1}
+unfix 1
+print           "STEP 1 complete"
+
+# STEP 2
+thermo ${d1}
+fix 2 all nvt temp ${T} ${T} ${Tdamp}
+velocity all scale ${T}
+run ${d1}
+unfix 2
+print           "STEP 2 complete"
+
+# STEP 3
+thermo ${d1}
+fix 3 all npt temp ${T} ${T} ${Tdamp} iso ${Pmax002} ${Pmax002} ${Pdamp}
+velocity all scale ${T}
+run ${d1}
+unfix 3
+print           "STEP 3 complete"
+
+# STEP 4
+thermo ${d1}
+fix 4 all nvt temp ${Tmax} ${Tmax} ${Tdamp}
+velocity all scale ${Tmax}
+run ${d1}
+unfix 4
+print           "STEP 4 complete"
+
+# STEP 5
+thermo ${d2}
+fix 5 all nvt temp ${T} ${T} ${Tdamp}
+velocity all scale ${T}
+run ${d2}
+unfix 5
+print           "STEP 5 complete"
+
+# STEP 6
+thermo ${d1}
+fix 6 all npt temp ${T} ${T} ${Tdamp} iso ${Pmax06} ${Pmax06} ${Pdamp}
+velocity all scale ${T}
+run ${d1}
+unfix 6
+print           "STEP 6 complete"
+
+# STEP 7
+thermo ${d1}
+fix 7 all nvt temp ${Tmax} ${Tmax} ${Tdamp}
+velocity all scale ${Tmax}
+run ${d1}
+unfix 7
+print           "STEP 7 complete"
+
+# STEP 8
+thermo ${d2}
+fix 8 all nvt temp ${T} ${T} ${Tdamp}
+velocity all scale ${T}
+run ${d2}
+unfix 8
+print           "STEP 8 complete"
+
+# STEP 9
+thermo ${d1}
+fix 9 all npt temp ${T} ${T} ${Tdamp} iso ${Pmax} ${Pmax} ${Pdamp}
+velocity all scale ${T}
+run ${d1}
+unfix 9
+print           "STEP 9 complete"
+
+# STEP 10
+thermo ${d1}
+fix 10 all nvt temp ${Tmax} ${Tmax} ${Tdamp}
+velocity all scale ${Tmax}
+run ${d1}
+unfix 10
+print           "STEP 10 complete"
+
+# STEP 11
+thermo ${d2}
+fix 11 all nvt temp ${T} ${T} ${Tdamp}
+velocity all scale ${T}
+run ${d2}
+unfix 11
+print           "STEP 11 complete"
+
+# STEP 12
+thermo ${d3}
+fix 12 all npt temp ${T} ${T} ${Tdamp} iso ${Pmax05} ${Pmax05} ${Pdamp}
+velocity all scale ${T}
+run ${d3}
+unfix 12
+print           "STEP 12 complete"
+
+# STEP 13
+thermo ${d3}
+fix 13 all nvt temp ${Tmax} ${Tmax} ${Tdamp}
+velocity all scale ${Tmax}
+run ${d3}
+unfix 13
+print           "STEP 13 complete"
+
+# STEP 14
+thermo ${d4}
+fix 14 all nvt temp ${T} ${T} ${Tdamp}
+velocity all scale ${T}
+run ${d4}
+unfix 14
+print           "STEP 14 complete"
+
+# STEP 15
+thermo ${d3}
+fix 15 all npt temp ${T} ${T} ${Tdamp} iso ${Pmax01} ${Pmax01} ${Pdamp}
+velocity all scale ${T}
+run ${d3}
+unfix 15
+print           "STEP 15 complete"
+
+# STEP 16
+thermo ${d3}
+fix 16 all nvt temp ${Tmax} ${Tmax} ${Tdamp}
+velocity all scale ${Tmax}
+run ${d3}
+unfix 16
+print           "STEP 16 complete"
+
+# STEP 17
+thermo ${d4}
+fix 17 all nvt temp ${T} ${T} ${Tdamp}
+velocity all scale ${T}
+run ${d4}
+unfix 17
+print           "STEP 17 complete"
+
+# STEP 18
+thermo ${d3}
+fix 18 all npt temp ${T} ${T} ${Tdamp} iso ${Pmax001} ${Pmax001} ${Pdamp}
+velocity all scale ${T}
+run ${d3}
+unfix 18
+print           "STEP 18 complete"
+
+# STEP 19
+thermo ${d3}
+fix 19 all nvt temp ${Tmax} ${Tmax} ${Tdamp}
+velocity all scale ${Tmax}
+run ${d3}
+unfix 19
+print           "STEP 19 complete"
+
+# STEP 20
+thermo ${d4}
+fix 20 all nvt temp ${T} ${T} ${Tdamp}
+velocity all scale ${T}
+run ${d4}
+unfix 20
+print           "STEP 20 complete"
+
+## STEP 21
+reset_timestep  0
+thermo ${thermo_freq}
+fix 21 all npt temp ${T} ${T} ${Tdamp} iso ${P} ${P} ${Pdamp}
+velocity all scale ${T}
+run ${d5}
+unfix 21
+print           "STEP 21 complete"
+
+write_data      21step.data
